@@ -1,4 +1,3 @@
-import db
 import os
 import time
 import shutil
@@ -18,19 +17,24 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 import pandas as pd
 
-META_MINIMIZED = "\\\\automotive-linux\\meta_minimized"
+
 DOWNLOAD_PATH = os.getcwd()+"\\release_notes_download"
-DRIVER_PATH = os.getcwd()+'\\db\\chromedriver.exe'
+DRIVER_PATH = os.getcwd()+'\\chromedriver.exe'
+
+META_MINIMIZED = "\\\\automotive-linux\\meta_minimized"
 OPENGROK_PATH = "\\\\automotive-linux\\opengrok_source"
 OPENGROK2_PATH = "\\\\automotive-linux\\opengrok_source_LA_MDM"
+
+REQUEST_URL = "https://automotive-linux:9999/db/"
+
 chrome_options = Options()
 prefs = {"plugins.plugins_disabled" : "Chrome PDF Viewer", "download.prompt_for_download": False, "plugins.always_open_pdf_externally": True, "download.default_directory": DOWNLOAD_PATH + "\\"} 
 chrome_options.add_experimental_option("prefs", prefs)
 driver = None
 list_mm = []
-request_url = "https://automotive-linux:9999/db/"
-sp_url = request_url + "sp/"
-build_url = request_url + "build/"
+
+SP_URL = REQUEST_URL + "sp/"
+BUILD_URL = REQUEST_URL + "build/"
 sp_data = []
 build_data = []
 
@@ -70,14 +74,14 @@ def check():
                 break
         if not hasMeta:
             print 'has no meta, Delete it from DB'
-            requests.delete(build_url+str(build['id'])+'/', verify=False)
+            requests.delete(BUILD_URL+str(build['id'])+'/', verify=False)
     return len(list_mm)
     
 def start(test=False):
     global driver, sp_data, build_data
     
-    response_s = requests.get(sp_url, headers={"Content-Type": "application/json"}, verify=False)
-    response_b = requests.get(build_url, headers={"Content-Type": "application/json"}, verify=False)
+    response_s = requests.get(SP_URL, headers={"Content-Type": "application/json"}, verify=False)
+    response_b = requests.get(BUILD_URL, headers={"Content-Type": "application/json"}, verify=False)
     sp_data = response_s.json()
     build_data = response_b.json()
     
@@ -295,7 +299,7 @@ def proceed(build):
         if not flag:
             print "no sp matched, delete it from DB"
             if original != None:
-                r = requests.delete(url=build_url+str(original['id'])+'/', verify=False)
+                r = requests.delete(url=BUILD_URL+str(original['id'])+'/', verify=False)
             return
         if not url == "" and not url == None:
             wiki_link, rno_link, rno_name, release_date = getLinks(url, build)
@@ -371,7 +375,7 @@ def proceed(build):
             # print data
             if not cmp(original, data) == 0:
                 print 'REST api(PUT) call...',
-                r = requests.put(url=build_url+str(original['id'])+'/', headers=headers, data=json.dumps(data), verify=False)
+                r = requests.put(url=BUILD_URL+str(original['id'])+'/', headers=headers, data=json.dumps(data), verify=False)
                 print 'Done'
             else:
                 print 'No change.'
@@ -403,7 +407,7 @@ def proceed(build):
                 'gvm_id': gvm_id,
             }
             print 'REST api(POST) call...',
-            r = requests.post(url=build_url, headers=headers, data=json.dumps(data), verify=False)
+            r = requests.post(url=BUILD_URL, headers=headers, data=json.dumps(data), verify=False)
             print 'Done'
             #print r.text
         
