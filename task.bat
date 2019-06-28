@@ -1,3 +1,3 @@
 set PYTHONPATH=%0\..
-cd %0\..
+pushd %0\..
 python update.py
